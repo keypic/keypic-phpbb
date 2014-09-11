@@ -1,0 +1,355 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<?xml-stylesheet type="text/xsl" href="modx.prosilver.en.xsl"?>
+<!--NOTICE: Please open this file in your web browser. If presented with a security warning, you may safely tell it to allow the blocked content.-->
+<!--For security purposes, please check: http://www.phpbb.com/mods/ for the latest version of this MOD.\nAlthough MODs are checked before being allowed in the MODs Database there is no guarantee that there are no security problems within the MOD.\nNo support will be given for MODs not found within the MODs Database which can be found at http://www.phpbb.com/mods/-->
+<mod xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="https://www.phpbb.com/mods/xml/modx-1.2.6.xsd">
+	<header>
+		<meta name="generator" content="MODX file generated with PP MODX Creator by tumba25 (online version)"/>
+		<license><![CDATA[http://opensource.org/licenses/gpl-license.php GNU General Public License v2]]></license>
+		<title lang="en"><![CDATA[Keypic]]></title>
+		<description lang="en"><![CDATA[For many people, Keypic is quite possibly the best way in the world to protect your forum from comment and trackback spam. It keeps your site protected from spam even while you sleep.]]></description>
+		<github><![CDATA[https://github.com/keypic/keypic-phpbb]]></github>
+		<author-group>
+			<author>
+				<realname><![CDATA[Keypic Inc]]></realname>
+				<username><![CDATA[keypic]]></username>
+				<homepage><![CDATA[www.keypic.com]]></homepage>
+				<email><![CDATA[info@keypic.com]]></email>
+			</author>
+		</author-group>
+		<mod-version>1.0.0</mod-version>
+		<installation>
+			<level>intermediate</level>
+			<time>600</time>
+			<target-version>>=3.0.10</target-version>
+		</installation>
+	</header>
+	<action-group>
+		<copy>
+			<file from="root/adm/style/acp_keypic.html" to="adm/style/acp_keypic.html"/>
+			<file from="root/includes/Keypic.php" to="includes/Keypic.php"/>
+			<file from="root/includes/acp/acp_keypic.php" to="includes/acp/acp_keypic.php"/>
+			<file from="root/includes/acp/info/acp_keypic.php" to="includes/acp/info/acp_keypic.php"/>
+			<file from="root/keypic-install/index.php" to="keypic-install/index.php"/>
+			<file from="root/language/en/mods/info_acp_keypic.php" to="language/en/mods/info_acp_keypic.php"/>
+			<file from="root/umil/*.*" to="umil/*.*"/>
+			<file from="root/keypic.php" to="keypic.php"/>
+		</copy>
+		<open src="posting.php">
+			<edit>
+				<find><![CDATA[if ($submit || $preview || $refresh)
+{]]></find>
+				<action type="after-add"><![CDATA[	// phpBB Keypic MOD -- Start
+	if (($config['keypic_PostEnabled'] && $mode == 'post') || ($config['keypic_CommentEnabled'] && ($mode == 'edit' || $mode == 'reply')))
+	{
+		global $phpbb_root_path, $phpEx;
+
+		include_once($phpbb_root_path . 'includes/Keypic.'. $phpEx);
+		$keypic_spam = Keypic::isSpam(request_var('keypic_token', '', true), '', $data['username'], '', $ClientFingerprint = '');
+
+		if(!is_numeric($keypic_spam) || $keypic_spam > Keypic::getSpamPercentage())
+		{
+			if(is_numeric($keypic_spam))
+			{
+				$keypic_error = $user->lang['KP_HAS_SPAM_LOGIN'];
+			}
+			else
+			{
+				$keypic_error = $user->lang['KP_FORMID_INVALID'];
+			}
+			
+			$error[] = $keypic_error;
+		}
+		
+		$keypic_token = isset($_POST['keypic_token']) ? request_var('keypic_token', '') : '';
+		$keypic_spam = Keypic::isSpam($keypic_token,  $user->data['email'],  $user->data['username'], request_var('message', '', true), $ClientFingerprint = '');
+
+		if (!isset($keypic_error))
+		{
+			$post_data['KeypicToken'] = $keypic_token;
+			$post_data['KeypicTS'] = time();					
+			$post_data['KeypicSpam'] = $keypic_spam;
+		}
+	}
+	// phpBB Keypic MOD -- End]]></action>
+			</edit>
+		</open>
+		<open src="includes/functions.php">
+			<edit>
+				<find><![CDATA[$web_path = (defined('PHPBB_USE_BOARD_URL_PATH') && PHPBB_USE_BOARD_URL_PATH) ? $board_url : $phpbb_root_path;
+]]></find>
+				<action type="after-add"><![CDATA[	// phpBB Keypic MOD -- Start
+	include_once($phpbb_root_path . 'includes/Keypic.'. $phpEx);
+	Keypic::setFormID($config['keypic_Formid']);
+	Keypic::setUserAgent("User-Agent: phpBB/".$config['version']." | Keypic/".$config['keypic_version']);
+	$keypic_token = isset($_POST['keypic_token']) ? $_POST['keypic_token'] : '';
+	$keypic_token = Keypic::getToken($keypic_token);
+	$keypic_getit = '';
+	$keypic_current_script = str_replace('.' . $phpEx, '', $user->page['page_name']);
+
+	if ($keypic_current_script == 'posting')
+	{
+		if (request_var('mode', '') == 'post' && $config['keypic_PostEnabled'])
+			$keypic_getit = Keypic::getIt($config['keypic_PostRequestType'], $config['keypic_PostWidthHeight']);
+		else if ($config['keypic_CommentEnabled'])
+			$keypic_getit = Keypic::getIt($config['keypic_CommentRequestType'], $config['keypic_CommentWidthHeight']);
+	}
+	else if ($keypic_current_script == 'index' && $user->data['user_id'] == ANONYMOUS && $config['keypic_SigninEnabled'])
+	{
+		$keypic_getit = Keypic::getIt($config['keypic_SigninRequestType'], $config['keypic_SigninWidthHeight']);
+	}
+	else if ($keypic_current_script == 'ucp' && (request_var('mode', '') == 'login' || request_var('mode', '') == 'register' || request_var('mode', '') == 'sendpassword'))
+	{
+		if (request_var('mode', '') == 'login' && $config['keypic_SigninEnabled'])
+			$keypic_getit = Keypic::getIt($config['keypic_SigninRequestType'], $config['keypic_SigninWidthHeight']);
+		else if (request_var('mode', '') == 'sendpassword' && $config['keypic_ForgotEnabled'])
+			$keypic_getit = Keypic::getIt($config['keypic_ForgotRequestType'], $config['keypic_ForgotWidthHeight']);
+		else if ($config['keypic_SignupEnabled'])
+			$keypic_getit = Keypic::getIt($config['keypic_SignupRequestType'], $config['keypic_SignupWidthHeight']);
+	}
+	
+	$template->assign_vars(array(
+		'KEYPIC_FORMID' => $config['keypic_Formid'],
+		'KEYPIC_SIGNINENABLED' => $config['keypic_SigninEnabled'],
+		'KEYPIC_SIGNUPENABLED' => $config['keypic_SignupEnabled'],
+		'KEYPIC_POSTENABLED' => $config['keypic_PostEnabled'],
+		'KEYPIC_COMMENTENABLED' => $config['keypic_CommentEnabled'],
+		'KEYPIC_SIGNINWIDTHHEIGHT' => $config['keypic_SigninWidthHeight'],
+		'KEYPIC_SIGNUPWIDTHHEIGHT' => $config['keypic_SignupWidthHeight'],
+		'KEYPIC_POSTWIDTHHEIGHT' => $config['keypic_PostWidthHeight'],
+		'KEYPIC_COMMENTWIDTHHEIGHT' => $config['keypic_CommentWidthHeight'],
+		'KEYPIC_SIGNUPREQUESTTYPE' => $config['keypic_SignupRequestType'],
+		'KEYPIC_SIGNINREQUESTTYPE' => $config['keypic_SigninRequestType'],
+		'KEYPIC_POSTREQUESTTYPE' => $config['keypic_PostRequestType'],
+		'KEYPIC_COMMENTREQUESTTYPE' => $config['keypic_CommentRequestType'],
+		'KEYPIC_EMPTY_FORMID' => $config['keypic_Formid'] == '' ? true : false,
+		'S_KEYPIC_TOKEN' => '<input type="hidden" name="keypic_token" value="'.$keypic_token.'">',
+		'KEYPIC_SCRIPT' => $keypic_getit,
+	)); 
+	// phpBB Keypic MOD -- End]]></action>
+			</edit>
+		</open>
+		<open src="includes/auth/auth_db.php">
+			<edit>
+				<find><![CDATA[$username_clean = utf8_clean_string($username);]]></find>
+				<action type="before-add"><![CDATA[// phpBB Keypic MOD -- Start
+	if ($config['keypic_SigninEnabled'])
+	{
+		global $phpbb_root_path, $phpEx;
+
+		include_once($phpbb_root_path . 'includes/Keypic.'. $phpEx);
+		$keypic_spam = Keypic::isSpam(request_var('keypic_token', '', true), '', $data['username'], '', $ClientFingerprint = '');
+
+		if(!is_numeric($keypic_spam) || $keypic_spam > Keypic::getSpamPercentage())
+		{
+			if(is_numeric($keypic_spam))
+			{
+				$keypic_error = 'KP_HAS_SPAM_LOGIN';
+			}
+			else
+			{
+				$keypic_error = 'KP_FORMID_INVALID';
+			}
+			
+			return array(
+				'status'	=> LOGIN_ERROR_USERNAME,
+				'error_msg'	=> $keypic_error,
+				'user_row'	=> array('user_id' => ANONYMOUS),
+			);
+		}
+	}
+	// phpBB Keypic MOD -- End]]></action>
+			</edit>
+		</open>
+		<open src="includes/ucp/ucp_register.php">
+			<edit>
+				<find><![CDATA[ if (!check_form_key('ucp_register'))
+			{ ]]></find>
+				<action type="before-add"><![CDATA[// phpBB Keypic MOD -- Start
+			if ($config['keypic_SignupEnabled'])
+			{
+				include_once($phpbb_root_path . 'includes/Keypic.'. $phpEx);
+				$keypic_spam = Keypic::isSpam(request_var('keypic_token', '', true), $data['email'], $data['username'], '', $ClientFingerprint = '');
+
+				if(!is_numeric($keypic_spam) || $keypic_spam > Keypic::getSpamPercentage())
+				{
+					if(is_numeric($keypic_spam))
+					{
+						$keypic_error = sprintf($user->lang['KP_HAS_SPAM'], $keypic_spam);
+					}
+					else
+					{
+						$keypic_error = $user->lang['KP_FORMID_INVALID'];
+					}
+			
+					$error[] = $keypic_error;
+				}
+			}
+			// phpBB Keypic MOD -- End]]></action>
+			</edit>
+			
+			<edit>
+			<find><![CDATA[if ($config['new_member_post_limit'])
+				{
+			]]></find>
+			
+			<action type="before-add"><![CDATA[
+				// phpBB Keypic MOD -- Start
+				$keypic_token = isset($_POST['keypic_token']) ? request_var('keypic_token', '') : '';
+				$keypic_spam = Keypic::isSpam($keypic_token, $_POST['Email'], $_POST['Name'], $ClientMessage = '', $ClientFingerprint = '');
+				
+				$user_row = array_merge($user_row, array(
+					'KeypicToken' => $keypic_token,
+					'KeypicTS' => time(),
+					'KeypicSpam' => $keypic_spam
+				));
+				// phpBB Keypic MOD -- End]]></action>
+			</edit>
+		</open>
+		<open src="language/en/common.php">
+			<edit>
+				<find><![CDATA[));]]></find>
+				<action type="after-add"><![CDATA[// phpBB Keypic MOD -- Start
+$lang = array_merge($lang, array(
+	'KP_FORMID_INVALID'						=> 'We are sorry, your Keypic token is not valid.',
+	'KP_HAS_SPAM'							=> 'This request has %s&#37; of spam.',
+	'KP_HAS_SPAM_LOGIN'						=> 'This request has spam percentage.',
+	'KP_STATUS'								=> 'Keypic Spam Status', 
+	'KP_REPORT_SPAM'						=> 'Report as Spam to Keypic',
+	'KP_SPAM_REPORTED_MSG'					=> '%s scuessfully reported as Spam to Keypic.',
+	'KP_POST'								=> 'Post',
+	'KP_TOPIC'								=> 'Topic'
+));
+// phpBB Keypic MOD -- End]]></action>
+			</edit>
+		</open>
+		
+		<open src="includes/ucp/ucp_remind.php">
+			<edit>
+				<find><![CDATA[ // Check users permissions
+			$auth2 = new auth();]]></find>
+			<action type="before-add"><![CDATA[ // phpBB Keypic MOD -- Start
+			if ($config['keypic_ForgotEnabled'])
+			{
+				include_once($phpbb_root_path . 'includes/Keypic.'. $phpEx);
+				$keypic_spam = Keypic::isSpam(request_var('keypic_token', '', true), $email, $username, '', $ClientFingerprint = '');
+
+				if(!is_numeric($keypic_spam) || $keypic_spam > Keypic::getSpamPercentage())
+				{
+					if(is_numeric($keypic_spam))
+					{
+						$keypic_error = sprintf($user->lang['KP_HAS_SPAM'], $keypic_spam);
+					}
+					else
+					{
+						$keypic_error = $user->lang['KP_FORMID_INVALID'];
+					}
+			
+					trigger_error($keypic_error);
+				}
+			}
+			// phpBB Keypic MOD -- End ]]></action>
+			</edit>
+		</open>
+		
+		<open src="styles/prosilver/template/viewtopic_body.html">
+			<edit>
+				<find><![CDATA[ <!-- IF postrow.S_DISPLAY_NOTICE --><div class="rules">{L_DOWNLOAD_NOTICE}</div><!-- ENDIF --> ]]></find>
+				<action type="before-add"><![CDATA[ 	<!-- phpBB Keypic MOD -- Start -->
+				<!-- IF S_USER_LOGGED_IN -->
+			<hr>
+			<div>{L_KP_STATUS} : {postrow.KEYPIC_STATUS} | <!-- IF postrow.S_FIRST_ROW --><a href="{BOARD_URL}keypic.php?action=report&t={postrow.POST_ID}">{L_KP_REPORT_SPAM}</a><!-- ELSE --><a href="{BOARD_URL}keypic.php?action=report&p={postrow.POST_ID}">{L_KP_REPORT_SPAM}</a><!-- ENDIF --></div>
+			<!-- ENDIF -->
+			<!-- phpBB Keypic MOD -- End --> ]]></action>
+			</edit>
+		</open>
+		
+		<open src="viewtopic.php">
+			<edit>
+				<find><![CDATA[ 'foe'				=> $row['foe'], ]]></find>
+				<action type="after-add"><![CDATA[ // phpBB Keypic MOD -- Start
+		'KeypicSpam'		=> $row['KeypicSpam'],
+		// phpBB Keypic MOD -- End ]]></action>
+			</edit>
+			<edit>
+				<find><![CDATA[ 'S_TOPIC_POSTER'	=> ($topic_data['topic_poster'] == $poster_id) ? true : false, ]]></find>
+				<action type="after-add"><![CDATA[ // phpBB Keypic MOD -- Start
+		'KEYPIC_STATUS'		=>	strlen($row['KeypicSpam']) == 0 ? '0%' : $row['KeypicSpam'].'%',
+		// phpBB Keypic MOD -- End ]]></action>
+			</edit>
+		</open>
+
+		<open src="styles/prosilver/template/index_body.html">
+			<edit>
+				<find><![CDATA[{S_LOGIN_REDIRECT}
+</fieldset>]]></find>
+				<action type="after-add"><![CDATA[<!-- phpBB Keypic MOD -- Start -->
+{S_KEYPIC_TOKEN}
+<!-- phpBB Keypic MOD -- End -->]]></action>
+			</edit>
+			<edit>
+				<find><![CDATA[</form>]]></find>
+				<action type="after-add"><![CDATA[<!-- phpBB Keypic MOD -- Start -->
+{KEYPIC_SCRIPT}
+<!-- phpBB Keypic MOD -- End -->]]></action>
+			</edit>
+		</open>
+		<open src="styles/prosilver/template/login_body.html">
+			<edit>
+				<find><![CDATA[</form>]]></find>
+				<action type="before-add"><![CDATA[<!-- phpBB Keypic MOD -- Start -->
+{S_KEYPIC_TOKEN}
+<!-- phpBB Keypic MOD -- End -->]]></action>
+				<action type="after-add"><![CDATA[<!-- phpBB Keypic MOD -- Start -->
+{KEYPIC_SCRIPT}
+<!-- phpBB Keypic MOD -- End -->]]></action>
+			</edit>
+		</open>
+		
+		<open src="styles/prosilver/template/posting_editor.html">
+			<edit>
+				<find><![CDATA[ <!-- IF not S_PRIVMSGS and not S_SHOW_DRAFTS and not $SIG_EDIT eq 1 --> ]]></find>
+				<action type="before-add"><![CDATA[
+					<!-- phpBB Keypic MOD -- Start -->
+					{S_KEYPIC_TOKEN}
+					{KEYPIC_SCRIPT}
+					<!-- phpBB Keypic MOD -- End -->
+				]]></action>
+			</edit>
+		</open>
+		
+		<open src="styles/prosilver/template/ucp_register.html">
+			<edit>
+				<find><![CDATA[{S_FORM_TOKEN}]]></find>
+				<action type="after-add"><![CDATA[<!-- phpBB Keypic MOD -- Start -->
+{S_KEYPIC_TOKEN}
+<!-- phpBB Keypic MOD -- End -->]]></action>
+			</edit>
+			<edit>
+				<find><![CDATA[</form>]]></find>
+				<action type="after-add"><![CDATA[<!-- phpBB Keypic MOD -- Start -->
+{KEYPIC_SCRIPT}
+<!-- phpBB Keypic MOD -- End -->]]></action>
+			</edit>
+		</open>
+		<open src="styles/prosilver/template/ucp_remind.html">
+			<edit>
+				<find><![CDATA[{S_FORM_TOKEN}]]></find>
+				<action type="after-add"><![CDATA[<!-- phpBB Keypic MOD -- Start -->
+{S_KEYPIC_TOKEN}
+<!-- phpBB Keypic MOD -- End -->]]></action>
+			</edit>
+			<edit>
+				<find><![CDATA[</form>]]></find>
+				<action type="after-add"><![CDATA[<!-- phpBB Keypic MOD -- Start -->
+{KEYPIC_SCRIPT}
+<!-- phpBB Keypic MOD -- End -->]]></action>
+			</edit>
+		</open>
+		<php-installer><![CDATA[keypic-install/index.php]]></php-installer>
+		<diy-instructions lang="en"><![CDATA[1. Purge cache.
+2. Remove PHPBB_ROOT/keypic-install dir.
+3. Enter FormID at,
+ACP -> .MODS -> Keypic.]]></diy-instructions>
+	</action-group>
+</mod>
