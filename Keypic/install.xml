@@ -45,6 +45,9 @@
 		global $phpbb_root_path, $phpEx;
 
 		include_once($phpbb_root_path . 'includes/Keypic.'. $phpEx);
+		Keypic::setFormID($config['keypic_Formid']);
+		Keypic::setUserAgent("User-Agent: phpBB/".$config['version']." | Keypic/".$config['keypic_version']);
+
 		$keypic_spam = Keypic::isSpam(request_var('keypic_token', '', true), '', $data['username'], '', $ClientFingerprint = '');
 
 		if(!is_numeric($keypic_spam) || $keypic_spam > Keypic::getSpamPercentage())
@@ -59,21 +62,35 @@
 			}
 			
 			$error[] = $keypic_error;
-		}
-		
-		$keypic_token = isset($_POST['keypic_token']) ? request_var('keypic_token', '') : '';
-		$keypic_spam = Keypic::isSpam($keypic_token,  $user->data['email'],  $user->data['username'], request_var('message', '', true), $ClientFingerprint = '');
-
-		if (!isset($keypic_error))
-		{
-			$post_data['KeypicToken'] = $keypic_token;
-			$post_data['KeypicTS'] = time();					
-			$post_data['KeypicSpam'] = $keypic_spam;
-		}
+		}		
 	}
 	// phpBB Keypic MOD -- End]]></action>
 			</edit>
 		</open>
+		
+		<open src="includes/functions_posting.php">
+			<edit>
+				<find><![CDATA[ // Submit new topic
+	if ($post_mode == 'post')
+	{ ]]></find>
+		<action type="before-add"><![CDATA[ // phpBB Keypic MOD -- Start
+			$keypic_token = isset($_POST['keypic_token']) ? request_var('keypic_token', '') : '';
+			
+			Keypic::setFormID($config['keypic_Formid']);
+			Keypic::setUserAgent("User-Agent: phpBB/".$config['version']." | Keypic/".$config['keypic_version']);
+
+			$keypic_spam = Keypic::isSpam($keypic_token,  $user->data['email'],  $user->data['username'], request_var('message', '', true), $ClientFingerprint = '');
+		
+			$sql_data[POSTS_TABLE]['sql'] = array_merge($sql_data[POSTS_TABLE]['sql'], array(
+				'KeypicToken' => $keypic_token,
+				'KeypicTS' => time(),					
+				'KeypicSpam' => $keypic_spam,
+			));
+			// phpBB Keypic MOD -- End
+		]]></action>
+			</edit>
+		</open>
+		
 		<open src="includes/functions.php">
 			<edit>
 				<find><![CDATA[$web_path = (defined('PHPBB_USE_BOARD_URL_PATH') && PHPBB_USE_BOARD_URL_PATH) ? $board_url : $phpbb_root_path;
@@ -138,6 +155,10 @@
 		global $phpbb_root_path, $phpEx;
 
 		include_once($phpbb_root_path . 'includes/Keypic.'. $phpEx);
+		Keypic::setFormID($config['keypic_Formid']);
+		Keypic::setUserAgent("User-Agent: phpBB/".$config['version']." | Keypic/".$config['keypic_version']);
+
+
 		$keypic_spam = Keypic::isSpam(request_var('keypic_token', '', true), '', $data['username'], '', $ClientFingerprint = '');
 
 		if(!is_numeric($keypic_spam) || $keypic_spam > Keypic::getSpamPercentage())
@@ -169,6 +190,9 @@
 			if ($config['keypic_SignupEnabled'])
 			{
 				include_once($phpbb_root_path . 'includes/Keypic.'. $phpEx);
+				Keypic::setFormID($config['keypic_Formid']);
+				Keypic::setUserAgent("User-Agent: phpBB/".$config['version']." | Keypic/".$config['keypic_version']);
+
 				$keypic_spam = Keypic::isSpam(request_var('keypic_token', '', true), $data['email'], $data['username'], '', $ClientFingerprint = '');
 
 				if(!is_numeric($keypic_spam) || $keypic_spam > Keypic::getSpamPercentage())
@@ -232,6 +256,9 @@ $lang = array_merge($lang, array(
 			if ($config['keypic_ForgotEnabled'])
 			{
 				include_once($phpbb_root_path . 'includes/Keypic.'. $phpEx);
+				Keypic::setFormID($config['keypic_Formid']);
+				Keypic::setUserAgent("User-Agent: phpBB/".$config['version']." | Keypic/".$config['keypic_version']);
+		
 				$keypic_spam = Keypic::isSpam(request_var('keypic_token', '', true), $email, $username, '', $ClientFingerprint = '');
 
 				if(!is_numeric($keypic_spam) || $keypic_spam > Keypic::getSpamPercentage())

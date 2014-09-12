@@ -47,4 +47,21 @@
 </fieldset>
 </form>
 
+<form id="acp_board_cuser" method="post" action="{U_ACTION}">
+	<fieldset>
+		<legend>{L_KEYPIC_ADMIN_CHECK_USER_HEAD}</legend>
+		
+		<dl>
+			<dt><label for="{L_KP_CU_TITLE}">{L_KP_CU_TITLE}:</label><br /><span>{L_KP_CU_TITLE_EXPLAIN}</span></dt>
+			<dd><input id="username" type="text" size="40" maxlength="255" name="username" value=""></dd>
+		</dl>
+		
+	<p class="submit-buttons">
+		<input class="button1" type="submit" id="submit" name="submit" value="{L_SUBMIT}" />&nbsp;
+		<input class="button2" type="reset" id="reset" name="reset" value="{L_RESET}" />
+	</p>
+	{S_FORM_TOKEN}
+	</fieldset>
+</form>
+
 <!-- INCLUDE overall_footer.html -->

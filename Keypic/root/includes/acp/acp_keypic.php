@@ -140,16 +140,32 @@ class acp_keypic
         }
 		
 		include_once($phpbb_root_path . 'includes/Keypic.'. $phpEx);
-		if ($submit && ($cfg_array['keypic_Formid'] != "") && (strcmp(Keypic::checkFormID($cfg_array['keypic_Formid'])["status"], "response") != 0))
+		if ($submit && (strlen($_POST['config']['keypic_Formid'])  > 0) && (Keypic::checkFormID($_POST['config']['keypic_Formid'])["status"] == "error"))
         {
-			$error[] = $user->lang['KEYPIC_FORMID_INVALID'];
+            $error[] = $user->lang['KEYPIC_FORMID_INVALID'];
         }
 		
         // Do not write values if there is an error
         if (sizeof($error))
         {
-            $submit = false;
+             $submit = false;
         }
+		
+		if ($submit && isset($_POST['username']))
+		{
+			$sql = 'SELECT * FROM ' . USERS_TABLE . '
+					WHERE ' . ('username_clean = \'' . $db->sql_escape(utf8_clean_string(request_var('username', ''))) . '\'');
+			$result = $db->sql_query($sql);
+			$user_row = $db->sql_fetchrow($result);
+			$db->sql_freeresult($result);
+
+			if (!$user_row)
+			{
+				trigger_error($user->lang['KP_NO_USER']. adm_back_link($this->u_action));
+			}
+	
+			trigger_error(sprintf($user->lang['KP_USER_SPAM_STATUS'], (($user_row['KeypicSpam'] != '') ? $user_row['KeypicSpam'] : 0).'%') . adm_back_link($this->u_action));
+		}
 
         // We go through the display_vars to make sure no one is trying to set variables he/she is not allowed to...
         foreach ($display_vars['vars'] as $config_name => $null)

@@ -65,4 +65,10 @@ $lang = array_merge($lang, array(
 	'KP_SIGNUP_REQUESTTYPE'					=> 'Request type of register form',
 	'KP_POST_REQUESTTYPE'					=> 'Request type of new topic form',
 	'KP_COMMENT_REQUESTTYPE'				=> 'Request type of reply form',
+	
+	'KEYPIC_ADMIN_CHECK_USER_HEAD'			=> 'Check user Spam Status',
+	'KP_CU_TITLE_EXPLAIN'					=> 'Check user Spam Status by entering username in textbox',
+	'KP_CU_TITLE'							=> 'Username',
+	'KP_USER_SPAM_STATUS'					=> 'Spam Status is %s',
+	'KP_NO_USER'							=> 'User with that username does not exists!',
 ));
