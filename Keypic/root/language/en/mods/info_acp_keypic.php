@@ -71,4 +71,8 @@ $lang = array_merge($lang, array(
 	'KP_CU_TITLE'							=> 'Username',
 	'KP_USER_SPAM_STATUS'					=> 'Spam Status is %s',
 	'KP_NO_USER'							=> 'User with that username does not exists!',
+	
+	'KP_USER_SPAM_REPORTED' 				=> 'The user has been reported as spam sucessfully.',
+	'KEYPIC_ADMIN_REPORT_USER_HEAD'			=> 'Report User as Spam',
+	'KP_REPORT_TITLE_EXPLAIN'				=> 'Report User as Spam by entering username in textbox',
 ));

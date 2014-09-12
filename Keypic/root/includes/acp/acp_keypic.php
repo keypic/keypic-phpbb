@@ -151,6 +151,26 @@ class acp_keypic
              $submit = false;
         }
 		
+		if ($submit && isset($_POST['susername']))
+		{
+			$sql = 'SELECT * FROM ' . USERS_TABLE . '
+					WHERE ' . ('username_clean = \'' . $db->sql_escape(utf8_clean_string(request_var('susername', ''))) . '\'');
+			$result = $db->sql_query($sql);
+			$user_row = $db->sql_fetchrow($result);
+			$db->sql_freeresult($result);
+
+			if (!$user_row)
+			{
+				trigger_error($user->lang['KP_NO_USER']. adm_back_link($this->u_action));
+			}
+			
+			Keypic::setFormID($config['keypic_Formid']);
+			Keypic::setUserAgent("User-Agent: phpBB/".$config['version']." | Keypic/".$config['keypic_version']);
+			Keypic::reportSpam($user_row['KeypicToken']);
+			
+			trigger_error($user->lang['KP_USER_SPAM_REPORTED'] . adm_back_link($this->u_action));
+		}
+		
 		if ($submit && isset($_POST['username']))
 		{
 			$sql = 'SELECT * FROM ' . USERS_TABLE . '
