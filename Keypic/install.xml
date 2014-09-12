@@ -242,9 +242,31 @@ $lang = array_merge($lang, array(
 	'KP_REPORT_SPAM'						=> 'Report as Spam to Keypic',
 	'KP_SPAM_REPORTED_MSG'					=> '%s scuessfully reported as Spam to Keypic.',
 	'KP_POST'								=> 'Post',
-	'KP_TOPIC'								=> 'Topic'
+	'KP_TOPIC'								=> 'Topic',
+	'KP_USER'								=> 'User'
 ));
 // phpBB Keypic MOD -- End]]></action>
+			</edit>
+		</open>
+		
+		<open src="memberlist.php">
+			<edit>
+				<find><![CDATA[ 'S_GROUP_LEADER'	=> $is_leader, ]]></find>
+				<action type="after-add"><![CDATA[// phpBB Keypic MOD -- Start
+					
+					'KP_SPAM'			=> ($row['KeypicSpam'] != '') ? $row['KeypicSpam'] : 0,
+					'U_KP_REPORT'		=> append_sid("{$phpbb_root_path}keypic.$phpEx", 'action=reportu&amp;u=' . $user_id),
+
+				// phpBB Keypic MOD -- End]]></action>
+			</edit>
+		</open>
+		
+		<open src="styles/prosilver/template/memberlist_body.html">
+			<edit>
+				<find><![CDATA[ <!-- IF S_VIEWONLINE --><td>{memberrow.VISITED}&nbsp;</td><!-- ENDIF --> ]]></find>
+				<action type="after-add"><![CDATA[ <!-- phpBB Keypic MOD -- Start -->
+					<td>{L_KP_STATUS} {memberrow.KP_SPAM}% <br><a href="{memberrow.U_KP_REPORT}">{L_KP_REPORT_SPAM}</a></td>
+				<!-- phpBB Keypic MOD -- End --> ]]></action>
 			</edit>
 		</open>
 		
