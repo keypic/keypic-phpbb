@@ -285,7 +285,7 @@ $lang = array_merge($lang, array(
 				<action type="before-add"><![CDATA[ 	<!-- phpBB Keypic MOD -- Start -->
 				<!-- IF S_USER_LOGGED_IN -->
 			<hr>
-			<div>{L_KP_STATUS} : {postrow.KEYPIC_STATUS} | <!-- IF postrow.S_FIRST_ROW --><a href="{BOARD_URL}keypic.php?action=report&t={postrow.POST_ID}">{L_KP_REPORT_SPAM}</a><!-- ELSE --><a href="{BOARD_URL}keypic.php?action=report&p={postrow.POST_ID}">{L_KP_REPORT_SPAM}</a><!-- ENDIF --></div>
+			<div>{L_KP_STATUS} : {postrow.KEYPIC_STATUS} | <!-- IF postrow.S_FIRST_ROW --><a href="{BOARD_URL}keypic.php?action=report&p={postrow.POST_ID}">{L_KP_REPORT_SPAM}</a><!-- ELSE --><a href="{BOARD_URL}keypic.php?action=report&p={postrow.POST_ID}">{L_KP_REPORT_SPAM}</a><!-- ENDIF --></div>
 			<!-- ENDIF -->
 			<!-- phpBB Keypic MOD -- End --> ]]></action>
 			</edit>
