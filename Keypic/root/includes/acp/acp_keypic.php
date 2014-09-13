@@ -140,7 +140,7 @@ class acp_keypic
         }
 		
 		include_once($phpbb_root_path . 'includes/Keypic.'. $phpEx);
-		if ($submit && (strlen($_POST['config']['keypic_Formid'])  > 0) && (Keypic::checkFormID($_POST['config']['keypic_Formid'])["status"] == "error"))
+		if ($submit && (strlen($cfg_array['keypic_Formid'])  > 0) && (Keypic::checkFormID($cfg_array['keypic_Formid'])["status"] == "error"))
         {
             $error[] = $user->lang['KEYPIC_FORMID_INVALID'];
         }

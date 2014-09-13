@@ -1,5 +1,13 @@
 <?php
 
+/**
+* @ignore
+*/
+if (!defined('IN_PHPBB'))
+{
+	exit;
+}
+
 /*  Copyright 2010-2014  Keypic Inc.  (email : info@keypic.com)
 
     This program is free software; you can redistribute it and/or modify

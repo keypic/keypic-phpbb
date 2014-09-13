@@ -66,6 +66,6 @@ switch($action)
 	break;
 	
 	default:
-		echo 'Invalied Action';
+		exit;
 	break;
 }
