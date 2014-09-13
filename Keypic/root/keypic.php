@@ -11,7 +11,7 @@ $auth->acl($user->data);
 $user->setup();
 
 $action = request_var('action', '');
-include_once($phpbb_root_path . 'includes/Keypic.'. $phpEx);
+include_once($phpbb_root_path . 'includes/keypic.'. $phpEx);
 Keypic::setFormID($config['keypic_Formid']);
 Keypic::setUserAgent("User-Agent: phpBB/".$config['version']." | Keypic/".$config['keypic_version']);
 
