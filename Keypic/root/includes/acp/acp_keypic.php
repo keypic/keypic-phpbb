@@ -139,8 +139,9 @@ class acp_keypic
             $error[] = $user->lang['FORM_INVALID'];
         }
 		
-		include_once($phpbb_root_path . 'includes/keypic.'. $phpEx);
-		if ($submit && (strlen($cfg_array['keypic_Formid'])  > 0) && (Keypic::checkFormID($cfg_array['keypic_Formid'])["status"] == "error"))
+		include_once($phpbb_root_path . 'includes/Keypic.'. $phpEx);
+		$checkFormID = Keypic::checkFormID($_POST['config']['keypic_Formid']);
+		if ($submit && (strlen($_POST['config']['keypic_Formid'])  > 0) && ($checkFormID["status"] == "error"))
         {
             $error[] = $user->lang['KEYPIC_FORMID_INVALID'];
         }
